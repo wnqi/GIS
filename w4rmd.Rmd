@@ -1,0 +1,35 @@
+---
+title: "Rmd4"
+author: "Weining Qi"
+date: "2022-11-02"
+output: html_document
+---
+
+# Load libraries
+library(sf)
+library(tidyverse)
+library(janitor)
+library(countrycode)
+library(dplyr)
+
+#Read in the data
+HDI <- read.csv("HDR21-22_Composite_indices_complete_time_series.csv")
+world <- st_read("World_Countries_(Generalized)/World_Countries__Generalized_.shp")
+
+#Select colums
+gii_2010_2019 <- HDI %>%
+  select(iso3, country, gii_2010, gii_2019)
+  
+#Calculate difference
+gii_2010_2019_diff <- gii_2010_2019%>%
+  mutate(gii_diff = gii_2019 - gii_2010)
+  
+#Convert from ISO 2 to ISO 3
+world$ISO3 <- countrycode(world$ISO, origin = 'iso2c', destination = 'iso3c') 
+
+#Join data
+world_joied <- world %>% 
+  clean_names() %>%
+  left_join(., 
+            gii_2010_2019_diff,
+            by = c("country" = "country"))
